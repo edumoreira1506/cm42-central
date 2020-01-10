@@ -1,15 +1,16 @@
 import React, { useEffect } from "react";
 import { connect } from "react-redux";
-import { fetchProjectBoard, toggleColumn, reverseColumns } from "actions/projectBoard";
+import { fetchProjectBoard, toggleColumn, reverseColumns, closeSearch } from "actions/projectBoard";
 import { fetchPastStories } from "actions/pastIterations";
 import Column from "../Columns/ColumnItem";
 import History from "../stories/History";
 import { getColumns } from "../../selectors/columns";
 import { CHILLY_BIN, DONE, BACKLOG } from '../../models/beta/column';
 import { canCloseColumn } from '../../models/beta/projectBoard';
+import { haveSearch, withScope } from '../../models/beta/story';
 import { createStory, closeHistory } from '../../actions/story';
 import AddStoryButton from '../story/AddStoryButton';
-import { status, historyStatus } from 'libs/beta/constants';
+import { status, historyStatus, storyScopes } from 'libs/beta/constants';
 import PropTypes from 'prop-types';
 import StoryPropTypes from '../shapes/story';
 import ProjectBoardPropTypes from '../shapes/projectBoard';
@@ -17,7 +18,7 @@ import Notifications from '../Notifications';
 import { removeNotification } from '../../actions/notifications';
 import StorySearch from '../search/StorySearch';
 import SprintVelocitySimulation from '../sprint/SprintVelocitySimulation';
-import SearchResults from './../search/SearchResults';
+import Search from './../search/Search';
 import ProjectLoading from './ProjectLoading';
 import SideBar from './SideBar';
 import Columns from '../Columns';
@@ -38,7 +39,10 @@ export const ProjectBoard = ({
   doneSprints,
   fetchPastStories,
   toggleColumn,
-  reverseColumns
+  reverseColumns,
+  closeSearch,
+  searchResults,
+  haveSearch
 }) => {
   useEffect(() => {
     fetchProjectBoard(projectId)
@@ -78,7 +82,13 @@ export const ProjectBoard = ({
       children: <Sprints sprints={doneSprints} fetchStories={fetchPastStories} />,
       visible: projectBoard.visibleColumns.done,
       onClose: () => toggleColumn('done')
-    }
+    },
+    {
+      title: `"${projectBoard.search.keyWord}"`,
+      children: <Search stories={searchResults} from="search" />,
+      visible: haveSearch,
+      onClose: closeSearch
+    },
   ];
 
   const sideBarButtons = [
@@ -132,8 +142,6 @@ export const ProjectBoard = ({
 
     <Columns {...columnProps} canCloseColumn={canCloseColumn(projectBoard)} />
 
-    <SearchResults />
-
     {
       history.status !== historyStatus.DISABLED &&
       <Column
@@ -169,7 +177,8 @@ ProjectBoard.propTypes = {
   calculatedSprintVelocity: PropTypes.number,
   sprintVelocity: PropTypes.number,
   simulateSprintVelocity: PropTypes.func,
-  revertSprintVelocity: PropTypes.func
+  revertSprintVelocity: PropTypes.func,
+  closeSearch: PropTypes.func
 };
 
 const mapStateToProps = ({
@@ -197,7 +206,9 @@ const mapStateToProps = ({
     pastIterations,
     stories
   }),
-  notifications
+  notifications,
+  haveSearch: haveSearch(stories),
+  searchResults: withScope(stories, storyScopes.SEARCH),
 });
 
 const mapDispatchToProps = {
@@ -208,6 +219,7 @@ const mapDispatchToProps = {
   fetchPastStories,
   removeNotification,
   reverseColumns,
+  closeSearch
 };
 
 export default connect(
