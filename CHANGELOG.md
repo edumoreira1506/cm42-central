@@ -30,6 +30,7 @@
 ### Fixed
 - [ V2 ] Internationalization date.
 - [ V2 ] Sprints calc bug.
+- Bug when change release date of story.
 
 ## [2.4.0] 2019-10-21
 
