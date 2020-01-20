@@ -6,6 +6,7 @@ import storyFactory from '../../../support/factories/storyFactory';
 describe('<ExpandedStoryHistoryLocation />', () => {
   const defaultProps = () => ({
     onClone: sinon.spy(),
+    showHistory: sinon.spy(),
     story: {
       ...storyFactory(),
       _editing: storyFactory()
